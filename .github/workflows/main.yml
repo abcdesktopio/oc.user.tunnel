@@ -1,63 +1,42 @@
-name: Docker
-
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
+name: Test and update oc.user images
 
 on:
-  schedule:
-    - cron: '26 3 * * *'
   push:
     branches: [ main ]
-    # Publish semver tags as releases.
-    tags: [ 'v*.*.*' ]
-  pull_request:
-    branches: [ main ]
-
-env:
-  # Use docker.io for Docker Hub if empty
-  REGISTRY: ghcr.io
-  # github.repository as <account>/<repo>
-  IMAGE_NAME: ${{ github.repository }}
-
-
+  repository_dispatch:
+    types: [dispatch-from-oc.user]
 jobs:
-  build:
-
+  update_image:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write
+    strategy:
+      matrix:
+        BASE_IMAGE_RELEASE: [18.04, 20.04, 21.04]
+    steps: 
+  
+    - name: Checkout repository
+      uses: actions/checkout@v2
+      
+    - name: Checkout submodules
+      uses: textbook/git-checkout-submodule-action@master
+      with:
+        remote: true
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v1
 
-      # Login against a Docker registry except on PR
-      # https://github.com/docker/login-action
-      - name: Log into registry ${{ env.REGISTRY }}
-        if: github.event_name != 'pull_request'
-        uses: docker/login-action@28218f9b04b4f3f62068d7b6ce6ca5b26e35336c
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
 
-      # Extract metadata (tags, labels) for Docker
-      # https://github.com/docker/metadata-action
-      - name: Extract Docker metadata
-        id: meta
-        uses: docker/metadata-action@98669ae865ea3cffbcbaa878cf57c20bbf1c6c38
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+    - name: Login to DockerHub
+      uses: docker/login-action@v1
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_TOKEN }}
 
-      # Build and push Docker image with Buildx (don't push on PR)
-      # https://github.com/docker/build-push-action
-      - name: Build and push Docker image
-        uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
-        with:
-          context: .
-          push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+    - name: Build image abcdesktopio/oc.user.tunnel.${{ matrix.BASE_IMAGE_RELEASE }}
+      run: |
+        docker build . -t abcdesktopio/oc.user.tunnel.${{ matrix.BASE_IMAGE_RELEASE }}:dev --build-arg BASE_IMAGE_RELEASE:${{ matrix.BASE_IMAGE_RELEASE }} --build-arg BASE_IMAGE=abcdesktopio/oc.user.${{ matrix.BASE_IMAGE_RELEASE }} --build-arg TAG:dev
+   
+    - name: Push image abcdesktopio/${{ matrix.BASE_IMAGE_RELEASE }}
+      run: |
+        docker push abcdesktopio/oc.user.tunnel.${{ matrix.BASE_IMAGE_RELEASE }}:dev
