@@ -9,10 +9,10 @@ ARG BASE_IMAGE=abcdesktopio/oc.user.18.04
 FROM $BASE_IMAGE:$TAG 
 
 USER root
-
+COPY etc/supervisor/conf.d/sshd.conf /etc/supervisor/conf.d/sshd.conf
 RUN apt-get update &&  apt-get install -y --no-install-recommends  \
-   	sshd		\
-		netcat 	\
+   	ssh		\
+	netcat 	\
     && apt-get clean	\
     && rm -rf /var/lib/apt/lists/*
     
