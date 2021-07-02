@@ -19,4 +19,7 @@ RUN apt-get update &&  apt-get install -y --no-install-recommends  \
     
 RUN chown $BUSER:$BUSER /etc/ssh/*
 
+# permit command /usr/bin/certbot to sudo user
+RUN echo "$BUSER ALL=(root) NOPASSWD: /usr/bin/certbot" >> /etc/sudoers.d/certbot
+
 USER $BUSER
