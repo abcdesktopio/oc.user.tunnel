@@ -21,7 +21,7 @@ RUN apt-get update &&  apt-get install -y --no-install-recommends  \
 RUN chown $BUSER:$BUSER /etc/ssh/*
 
 # permit ballon to change certbot directory
-RUN mkdir -p /var/lib/letsencrypt /var/log/letsencrypt && \
-    chown balloon:root -R /var/lib/letsencrypt /var/log/letsencrypt 
+RUN mkdir -p /etc/letsencrypt /var/lib/letsencrypt /var/log/letsencrypt && \
+    chown balloon:root -R /var/lib/letsencrypt /var/log/letsencrypt /etc/letsencrypt 
 
 USER $BUSER
