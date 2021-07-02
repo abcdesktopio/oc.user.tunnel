@@ -16,8 +16,13 @@ RUN apt-get update &&  apt-get install -y --no-install-recommends  \
 	certbot		\
     && apt-get clean	\
     && rm -rf /var/lib/apt/lists/*
-    
+
+# permit boollon to change ssh config
 RUN chown $BUSER:$BUSER /etc/ssh/*
+
+# permit ballon to change certbot directory
+RUN mkdir -p /var/lib/letsencrypt /var/log/letsencrypt && \
+    chown balloon:root -R /var/lib/letsencrypt /var/log/letsencrypt 
 
 # permit command /usr/bin/certbot to sudo user
 RUN echo "$BUSER ALL=(root) NOPASSWD: /usr/bin/certbot" >> /etc/sudoers.d/certbot
