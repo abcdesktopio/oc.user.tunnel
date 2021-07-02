@@ -12,7 +12,8 @@ USER root
 COPY etc/supervisor/conf.d/sshd.conf /etc/supervisor/conf.d/sshd.conf
 RUN apt-get update &&  apt-get install -y --no-install-recommends  \
    	ssh		\
-	netcat 	\
+	netcat 		\
+	certbot		\
     && apt-get clean	\
     && rm -rf /var/lib/apt/lists/*
     
