@@ -24,7 +24,4 @@ RUN chown $BUSER:$BUSER /etc/ssh/*
 RUN mkdir -p /var/lib/letsencrypt /var/log/letsencrypt && \
     chown balloon:root -R /var/lib/letsencrypt /var/log/letsencrypt 
 
-# permit command /usr/bin/certbot to sudo user
-RUN echo "$BUSER ALL=(root) NOPASSWD: /usr/bin/certbot" >> /etc/sudoers.d/certbot
-
 USER $BUSER
